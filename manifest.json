@@ -6,5 +6,5 @@
 	"description": "Create markdown files based on parameters from other notes.",
 	"author": "lucasmelloec",
 	"authorUrl": "https://github.com/lucasmelloec",
-	"isDesktopOnly": true
+	"isDesktopOnly": false
 }
