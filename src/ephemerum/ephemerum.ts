@@ -28,6 +28,8 @@ export class EphemerumFile {
 			}
 			
 			await app.vault.modify(this.file, this.content);
+
+			this.dirty = false;
 		}
 	}
 

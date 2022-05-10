@@ -1,27 +1,27 @@
 import { App, TFile } from "obsidian";
 
-type Property = Record<string, unknown>;
+type PropertiesObject = Record<string, unknown>;
 
 export class Properties {
-	private static addToProperties(properties: Property, key: string, value: unknown) {
-		if(properties[key]) {
-			if(Array.isArray(properties[key])) {
-				(properties[key] as unknown[]).push(value);
-				properties[key] = (properties[key] as unknown[]).flat(1);
+	public propertiesObject: PropertiesObject;
+
+	private addToProperties(key: string, value: unknown) {
+		if(this.propertiesObject[key]) {
+			if(Array.isArray(this.propertiesObject[key])) {
+				(this.propertiesObject[key] as unknown[]).push(value);
+				this.propertiesObject[key] = (this.propertiesObject[key] as unknown[]).flat(1);
 			}
 			else {
-				properties[key] = [properties[key], value];
-				properties[key] = (properties[key] as unknown[]).flat(1);
+				this.propertiesObject[key] = [this.propertiesObject[key], value];
+				this.propertiesObject[key] = (this.propertiesObject[key] as unknown[]).flat(1);
 			}
 		}
 		else {
-			properties[key] = value;
+			this.propertiesObject[key] = value;
 		}
 	}
 
-	private static parseFrontmatter(app: App, file: TFile): Property {
-		const properties: Property = {};
-
+	private parseFrontmatter(app: App, file: TFile) {
 		const fileCache = app.metadataCache.getFileCache(file);
 
 		if(fileCache) {
@@ -29,58 +29,46 @@ export class Properties {
 
 			if(fileFrontmatter) {
 				for(const key in fileFrontmatter) {
-					this.addToProperties(properties, key, fileFrontmatter[key]);
+					this.addToProperties(key, fileFrontmatter[key]);
 				}
 			}
 		}
-
-		return properties;
 	}
 
-	private static async parseInlineFields(app: App, file: TFile): Promise<Property> {
+	private async parseInlineFields(app: App, file: TFile) {
         const content = await app.vault.cachedRead(file);
 
-        return content.split("\n").reduce((obj: Property, str: string) => {
-            const parts = str.split("::");
+        for(const line of content.split("\n")) {
+			const parts = line.split("::");
 
-            if (parts[0] && parts[1]) {
-				this.addToProperties(obj, parts[0], parts[1].trim());
-            }
-            else if (str.includes("::")) {
-                const key: string = str.replace("::",'');
-                this.addToProperties(obj, key, "");
-            }
-
-            return obj;
-        },  {});
+			if (parts[0] && parts[1]) {
+				this.addToProperties(parts[0], parts[1].trim());
+			}
+			else if (line.includes("::")) {
+				const key: string = line.replace("::",'');
+				this.addToProperties(key, "");
+			}
+		}
     }
 
-	private static getTagsForFile(app: App, file: TFile): Property {
-		const properties: Property = {};
-
+	private getTagsForFile(app: App, file: TFile) {
 		const fileCache = app.metadataCache.getFileCache(file);
-
-		console.log(fileCache);
 
 		if (fileCache) {
 			if (fileCache.tags) {
-				this.addToProperties(properties, 'tags', fileCache.tags.map(t => t.tag.substring(1)));
+				this.addToProperties('tags', fileCache.tags.map(t => t.tag.substring(1)));
 			}
 			const {tags} = fileCache.frontmatter;
 
 			if(tags) {
-				this.addToProperties(properties, 'tags', tags);
+				this.addToProperties('tags', tags);
 			}
 		}
-
-		return properties;
 	}
 
-	public static async getPropertiesInFile(app: App, file: TFile): Promise<Property> {
-        const yaml = this.parseFrontmatter(app, file);
-        const inlineFields = await this.parseInlineFields(app, file);
-        const tags = this.getTagsForFile(app, file);
-
-        return {...tags, ...yaml, ...inlineFields};
+	public async getPropertiesInFile(app: App, file: TFile) {
+        this.parseFrontmatter(app, file);
+        await this.parseInlineFields(app, file);
+        this.getTagsForFile(app, file);
     }
 }

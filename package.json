@@ -1,5 +1,5 @@
 {
-	"name": "obsidian-ephemera",
+	"name": "obsidian-ephemera-plugin",
 	"version": "0.1.0",
 	"description": "Create markdown files based on parameters from other notes.",
 	"main": "main.js",

@@ -16,6 +16,24 @@ export default class Ephemera extends Plugin {
 		// Register Events
 		this.registerEvent(this.app.vault.on('modify', () => {}));
 		this.registerEvent(this.app.workspace.on('file-open', (file) => this.fileOpenHook(file)));
+
+		// Add Commands
+		this.addCommand({
+			id: "render-ephemerum",
+			name: "Render Ephemerum File",
+			callback: () => {
+				const file = this.app.workspace.getActiveFile();
+				if (file && EphemerumFile.isEphemerum(this.app, file)) {
+					console.log("Ephemerum File render triggered")
+	
+					const userScript = EphemerumFile.getEphemerumUserScript(this.app, file);
+					if(userScript) {
+						const ephemerum = new EphemerumFile(file, this.settings.scriptsFolder, userScript);
+						ephemerum.render(this.app);
+					}
+				}
+			},
+		});
 	}
 
 	onunload() {

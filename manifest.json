@@ -1,6 +1,6 @@
 {
 	"id": "obsidian-ephemera-plugin",
-	"name": "Ephemera Plugin",
+	"name": "Ephemera",
 	"version": "0.1.0",
 	"minAppVersion": "0.14.6",
 	"description": "Create markdown files based on parameters from other notes.",
